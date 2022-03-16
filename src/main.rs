@@ -1,6 +1,8 @@
 use benri_qr::{MeCard, QrEncode};
 use clap::Parser;
 use qrcode::render::svg;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::PathBuf;
 
 static ABOUT: &str =
@@ -36,7 +38,9 @@ fn main() {
             println!("{}", image);
         }
         "xlsx" => {
-            let cards = MeCard::from_excel(args.input.as_path()).unwrap();
+            let file = File::open(&args.input).unwrap();
+            let reader = BufReader::new(file);
+            let cards = MeCard::from_excel(reader).unwrap();
             let title = if let Some(title) = args.title {
                 title
             } else {
@@ -53,7 +57,8 @@ fn main() {
                 args.height,
                 light,
                 dark,
-            ).unwrap();
+            )
+            .unwrap();
         }
         _ => {
             eprintln!("Invalid file format.")

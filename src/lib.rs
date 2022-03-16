@@ -1,10 +1,10 @@
-use calamine::{open_workbook, RangeDeserializerBuilder, Reader, Xlsx};
+use calamine::{RangeDeserializerBuilder, Reader, Xlsx};
 use qrcode::render::svg;
 use qrcode::{EcLevel, QrCode};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufReader};
+use std::io::{BufReader, BufWriter};
 use std::path::Path;
 static CSS: &str = include_str!("default.css");
 
@@ -36,8 +36,10 @@ where
             .light_color(light)
             .build()
     }
-    fn from_excel(path: &Path) -> Result<Vec<Self>, calamine::Error> {
-        let mut workbook: Xlsx<_> = open_workbook(path)?;
+    fn from_excel<Reader: std::io::Read + std::io::Seek>(
+        reader: Reader,
+    ) -> Result<Vec<Self>, calamine::Error> {
+        let mut workbook = Xlsx::new(reader)?; //<_> = open_workbook(path)?;
         let sheet_name = workbook.sheet_names()[0].to_owned();
         let range = workbook
             .worksheet_range(&sheet_name)
@@ -110,4 +112,25 @@ impl QrEncode for MeCard {
     fn display(&self) -> String {
         self.Name.clone()
     }
+}
+
+extern crate wasm_bindgen;
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub fn xlsx2html(xlsx: &[u8], title: &str) -> Result<String, JsValue> {
+    let cursor = std::io::Cursor::new(xlsx);
+    let buf = BufReader::new(cursor);
+    let cards = MeCard::from_excel(buf).map_err(|e| JsValue::from(e.to_string()))?;
+    let mut writer = BufWriter::new(Vec::new());
+    let light = svg::Color("transparent");
+    let dark = svg::Color("black");
+    MeCard::write_html(&mut writer, &cards, title, "ja", 128, 128, light, dark)
+        .map_err(|e| JsValue::from(e.to_string()))?;
+
+    let bytes = writer
+        .into_inner()
+        .map_err(|e| JsValue::from(e.to_string()))?;
+    let html = String::from_utf8(bytes).map_err(|e| JsValue::from(e.to_string()))?;
+    Ok(html)
 }
