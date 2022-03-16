@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
+
 static CSS: &str = include_str!("default.css");
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -22,6 +23,44 @@ pub struct MeCard {
     pub Nickname: Option<String>,
 }
 
+impl MeCard {
+    pub fn new(
+        name: String,
+        reading: Option<String>,
+        tel: Option<String>,
+        email: Option<String>,
+        memo: Option<String>,
+        birthday: Option<String>,
+        address: Option<String>,
+        url: Option<String>,
+        nickname: Option<String>,
+    ) -> Self {
+        Self {
+            Name: name,
+            Reading: reading,
+            TEL: tel,
+            EMail: email,
+            Memo: memo,
+            Birthday: birthday,
+            Address: address,
+            URL: url,
+            Nickname: nickname,
+        }
+    }
+    pub fn init(name: String) -> Self {
+        Self {
+            Name: name,
+            Reading: None,
+            TEL: None,
+            EMail: None,
+            Memo: None,
+            Birthday: None,
+            Address: None,
+            URL: None,
+            Nickname: None,
+        }
+    }
+}
 pub trait QrEncode: Sized
 where
     for<'de> Self: Deserialize<'de>,
@@ -132,4 +171,16 @@ pub fn xlsx2html(xlsx: &[u8], title: &str) -> Result<String, JsValue> {
         .map_err(|e| JsValue::from(e.to_string()))?;
     let html = String::from_utf8(bytes).map_err(|e| JsValue::from(e.to_string()))?;
     Ok(html)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encode() {
+        let mut card = MeCard::init(String::from("John"));
+        card.TEL = Some("1234-5678".into());
+        assert_eq!(card.encode(), "MECARD:N:John;TEL:1234-5678;")
+    }
 }
