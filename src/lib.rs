@@ -44,7 +44,6 @@ where
         let range = workbook
             .worksheet_range(&sheet_name)
             .ok_or(calamine::Error::Msg("Cannot find a sheet"))??;
-
         let iter = RangeDeserializerBuilder::new().from_range(&range)?;
         let cards: Vec<Self> = iter.map(|row| row.unwrap()).collect();
         Ok(cards)
