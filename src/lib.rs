@@ -67,24 +67,35 @@ where
 {
     fn encode(&self) -> String;
     fn display(&self) -> String;
-    fn svg(&self, width: u32, height: u32, light: svg::Color, dark: svg::Color) -> String {
-        let code = QrCode::with_error_correction_level(self.encode(), EcLevel::L).unwrap();
-        code.render()
+    fn svg(
+        &self,
+        width: u32,
+        height: u32,
+        light: svg::Color,
+        dark: svg::Color,
+    ) -> Result<String, Box<dyn Error>> {
+        let code = QrCode::with_error_correction_level(self.encode(), EcLevel::L)?;
+        let qr = code
+            .render()
             .min_dimensions(width, height)
             .dark_color(dark)
             .light_color(light)
-            .build()
+            .build();
+        Ok(qr)
     }
     fn from_excel<Reader: std::io::Read + std::io::Seek>(
         reader: Reader,
     ) -> Result<Vec<Self>, calamine::Error> {
-        let mut workbook = Xlsx::new(reader)?; //<_> = open_workbook(path)?;
+        let mut workbook = Xlsx::new(reader)?;
         let sheet_name = workbook.sheet_names()[0].to_owned();
         let range = workbook
             .worksheet_range(&sheet_name)
             .ok_or(calamine::Error::Msg("Cannot find a sheet"))??;
         let iter = RangeDeserializerBuilder::new().from_range(&range)?;
-        let cards: Vec<Self> = iter.map(|row| row.unwrap()).collect();
+        let mut cards: Vec<Self> = Vec::with_capacity(range.height());
+        for result in iter {
+            cards.push(result?);
+        }
         Ok(cards)
     }
     fn from_json(path: &Path) -> Result<Self, Box<dyn Error>> {
@@ -95,14 +106,13 @@ where
     }
     fn write_html<Writer: std::io::Write>(
         writer: &mut Writer,
-        cards: &Vec<Self>,
+        cards: &[Self],
         title: &str,
         lang: &str,
-        width: u32,
-        height: u32,
+        w_h: (u32, u32),
         light: svg::Color,
         dark: svg::Color,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         writeln!(
             writer,
             "<html lang=\"{}\"><head><meta charset=\"utf-8\"><title>{}</title><style>",
@@ -114,7 +124,7 @@ where
             write!(writer, "<div><figure><figcaption>")?;
             write!(writer, "{}", card.display())?;
             writeln!(writer, "</figcaption>")?;
-            writeln!(writer, "{}", card.svg(width, height, light, dark,))?;
+            writeln!(writer, "{}", card.svg(w_h.0, w_h.1, light, dark)?)?;
             writeln!(writer, "</figure></div>")?;
         }
         writeln!(writer, "</body></html>")?;
@@ -163,7 +173,7 @@ pub fn xlsx2html(xlsx: &[u8], title: &str) -> Result<String, JsValue> {
     let mut writer = BufWriter::new(Vec::new());
     let light = svg::Color("transparent");
     let dark = svg::Color("black");
-    MeCard::write_html(&mut writer, &cards, title, "ja", 128, 128, light, dark)
+    MeCard::write_html(&mut writer, &cards, title, "ja", (128, 128), light, dark)
         .map_err(|e| JsValue::from(e.to_string()))?;
 
     let bytes = writer

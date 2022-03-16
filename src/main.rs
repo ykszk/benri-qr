@@ -1,6 +1,7 @@
 use benri_qr::{MeCard, QrEncode};
 use clap::Parser;
 use qrcode::render::svg;
+use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -27,24 +28,35 @@ struct Args {
     lang: String,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let light = svg::Color("transparent");
     let dark = svg::Color("black");
-    match args.input.extension().unwrap().to_str().unwrap() {
+    match args
+        .input
+        .extension()
+        .ok_or("input path error")?
+        .to_str()
+        .ok_or("input path error")?
+    {
         "json" => {
-            let card = MeCard::from_json(args.input.as_path()).unwrap();
-            let image = card.svg(args.width, args.height, light, dark);
+            let card = MeCard::from_json(args.input.as_path())?;
+            let image = card.svg(args.width, args.height, light, dark)?;
             println!("{}", image);
         }
         "xlsx" => {
-            let file = File::open(&args.input).unwrap();
+            let file = File::open(&args.input)?;
             let reader = BufReader::new(file);
-            let cards = MeCard::from_excel(reader).unwrap();
+            let cards = MeCard::from_excel(reader)?;
             let title = if let Some(title) = args.title {
                 title
             } else {
-                args.input.file_stem().unwrap().to_str().unwrap().into()
+                args.input
+                    .file_stem()
+                    .ok_or("input path error")?
+                    .to_str()
+                    .ok_or("input path error")?
+                    .into()
             };
             let stdout = std::io::stdout();
             let mut writer = std::io::BufWriter::new(stdout.lock());
@@ -53,15 +65,14 @@ fn main() {
                 &cards,
                 &title,
                 &args.lang,
-                args.width,
-                args.height,
+                (args.width, args.height),
                 light,
                 dark,
-            )
-            .unwrap();
+            )?;
         }
         _ => {
             eprintln!("Invalid file format.")
         }
     }
+    Ok(())
 }
