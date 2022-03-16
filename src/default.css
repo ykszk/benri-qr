@@ -1,0 +1,32 @@
+body {
+    display: table;
+    text-align: justify;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    align-content: center;
+    align-self: center;
+    text-align: justify;
+}
+
+div {
+    vertical-align: middle;
+    display: inline-block;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+figure {
+    min-width: 256px;
+}
+
+svg {
+    display: block;
+    margin: auto;
+}
+
+figcaption {
+    display: block;
+    text-align: center;
+}
