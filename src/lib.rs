@@ -1,12 +1,12 @@
+use calamine::{open_workbook, RangeDeserializerBuilder, Reader, Xlsx};
 use qrcode::render::svg;
 use qrcode::{EcLevel, QrCode};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
-use calamine::{open_workbook, RangeDeserializerBuilder, Reader, Xlsx};
+use std::io::{BufReader};
+use std::path::Path;
 static CSS: &str = include_str!("default.css");
-use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Serialize, Debug)]
 #[allow(non_snake_case)]
@@ -41,13 +41,20 @@ where
         let sheet_name = workbook.sheet_names()[0].to_owned();
         let range = workbook
             .worksheet_range(&sheet_name)
-            .ok_or(calamine::Error::Msg("Cannot find 'Sheet1'"))??;
+            .ok_or(calamine::Error::Msg("Cannot find a sheet"))??;
 
         let iter = RangeDeserializerBuilder::new().from_range(&range)?;
         let cards: Vec<Self> = iter.map(|row| row.unwrap()).collect();
         Ok(cards)
     }
-    fn print_html(
+    fn from_json(path: &Path) -> Result<Self, Box<dyn Error>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let card = serde_json::from_reader(reader)?;
+        Ok(card)
+    }
+    fn write_html<Writer: std::io::Write>(
+        writer: &mut Writer,
         cards: &Vec<Self>,
         title: &str,
         lang: &str,
@@ -55,21 +62,23 @@ where
         height: u32,
         light: svg::Color,
         dark: svg::Color,
-    ) {
-        println!(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        writeln!(
+            writer,
             "<html lang=\"{}\"><head><meta charset=\"utf-8\"><title>{}</title><style>",
             lang, title
-        );
-        println!("{}", CSS);
-        println!("</style></head>\n<body>");
+        )?;
+        writeln!(writer, "{}", CSS)?;
+        writeln!(writer, "</style></head>\n<body>")?;
         for card in cards {
-            print!("<div><figure><figcaption>");
-            print!("{}", card.display());
-            println!("</figcaption>");
-            println!("{}", card.svg(width, height, light, dark,));
-            println!("</figure></div>");
+            write!(writer, "<div><figure><figcaption>")?;
+            write!(writer, "{}", card.display())?;
+            writeln!(writer, "</figcaption>")?;
+            writeln!(writer, "{}", card.svg(width, height, light, dark,))?;
+            writeln!(writer, "</figure></div>")?;
         }
-        println!("</body></html>");
+        writeln!(writer, "</body></html>")?;
+        Ok(())
     }
 }
 

@@ -3,6 +3,10 @@ name = "benri-qr"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "contactqr"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "3", features = ["derive"] }
 qrcode = { version = "0", features = ["svg"], default-features = false }

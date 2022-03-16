@@ -1,32 +1,28 @@
+use benri_qr::{MeCard, QrEncode};
 use clap::Parser;
 use qrcode::render::svg;
-use qrcode::{EcLevel, QrCode};
-use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::{Path, PathBuf};
-use benri_qr::{MeCard, QrEncode};
+use std::path::PathBuf;
 
+static ABOUT: &str =
+    "Generate QrCode for contact information. Input file with the following fields.
+Name, Reading, TEL, Email, Memo, Birthday, Address, URL, Nickname
+Any fields but <Name> are optional.";
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about = ABOUT)]
 struct Args {
-    /// Input file
+    /// Input file, json or xlsx
     input: PathBuf,
-
     /// Minimum width
-    #[clap(short, long, default_value_t = 128)]
+    #[clap(long, default_value_t = 128)]
     width: u32,
     /// Minimum height
-    #[clap(short, long, default_value_t = 128)]
+    #[clap(long, default_value_t = 128)]
     height: u32,
-}
-
-fn read_mecard_from_file(path: &Path) -> Result<MeCard, Box<dyn Error>> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-    let card = serde_json::from_reader(reader)?;
-    Ok(card)
+    /// Html title
+    title: Option<String>,
+    #[clap(long, default_value = "ja")]
+    /// Html lang
+    lang: String,
 }
 
 fn main() {
@@ -35,13 +31,29 @@ fn main() {
     let dark = svg::Color("black");
     match args.input.extension().unwrap().to_str().unwrap() {
         "json" => {
-            let card = read_mecard_from_file(args.input.as_path()).unwrap();
+            let card = MeCard::from_json(args.input.as_path()).unwrap();
             let image = card.svg(args.width, args.height, light, dark);
             println!("{}", image);
         }
         "xlsx" => {
             let cards = MeCard::from_excel(args.input.as_path()).unwrap();
-            MeCard::print_html(&cards, "title", "ja", args.width, args.height, light, dark);
+            let title = if let Some(title) = args.title {
+                title
+            } else {
+                args.input.file_stem().unwrap().to_str().unwrap().into()
+            };
+            let stdout = std::io::stdout();
+            let mut writer = std::io::BufWriter::new(stdout.lock());
+            MeCard::write_html(
+                &mut writer,
+                &cards,
+                &title,
+                &args.lang,
+                args.width,
+                args.height,
+                light,
+                dark,
+            ).unwrap();
         }
         _ => {
             eprintln!("Invalid file format.")
