@@ -1,4 +1,3 @@
-import './App.css';
 import { useEffect, useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import init, { xlsx2html } from "benri-qr";
@@ -65,8 +64,7 @@ function App() {
         {
           isDragActive ?
             <p>Open the file ...</p> :
-            <p>Drop .xlsx with Name, Reading, TEL, Email, Memo, Birthday, Address, URL, Nickname columns.
-              Any columns but "Name" are optional..</p>
+            <p>Drop .xlsx with file or click to open.</p>
         }
       </div>
     </div>

@@ -1,6 +1,6 @@
-#root {
+body {
   margin: 0;
-  font-size: calc(10px + 2vmin);
+  padding: 0;
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -10,6 +10,16 @@
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  font-size: calc(10px + 2vmin);
+  text-align: center;
+}
+
+div {
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
@@ -25,40 +35,10 @@ footer {
   font-size: 16px;
 }
 
-
-div.main {
-  display: flex;
-  flex-direction: row;
-  width: 100vw;
-  justify-content: center;
-}
-
-div.buttons {
-  display: flex;
-  flex-direction: column;
-}
-
-div.buttons>* {
-  align-self: baseline;
-}
-
-@media screen and (max-width: 960px) {
-  div.main {
-    flex-direction: column;
-  }
-
-  div.buttons {
-    flex-direction: row;
-  }
-}
-
-div.main>div {
-  align-self: center;
-}
-
 .dropzone {
   cursor: pointer;
   width: 95vw;
+  margin: auto;
   padding: .5em;
 }
 
@@ -72,7 +52,6 @@ div.main>div {
 
 img {
   width: min(512px, 98vw);
-  /* max-height: min(512px, 100vw); */
 }
 
 h3 {
