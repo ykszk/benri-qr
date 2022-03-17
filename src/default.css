@@ -1,12 +1,8 @@
 body {
-    display: table;
-    text-align: justify;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    align-items: center;
-    align-content: center;
-    align-self: center;
-    text-align: justify;
+    display: table-cell;
+    width: 100vw;
+    margin: auto;
+    text-align: center;
 }
 
 div {
