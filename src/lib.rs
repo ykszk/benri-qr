@@ -9,6 +9,9 @@ use std::path::Path;
 
 static CSS: &str = include_str!("default.css");
 
+/// MeCard data format.
+///
+/// `TEL-AV` omitted since it seems obsolete.
 #[derive(Deserialize, Serialize, Debug)]
 #[allow(non_snake_case)]
 pub struct MeCard {
@@ -61,12 +64,18 @@ impl MeCard {
         }
     }
 }
+
+/// QrEncodable object.
+/// Implement `encode` and `display` for custom types and use blanket implementations.
 pub trait QrEncode: Sized
 where
     for<'de> Self: Deserialize<'de>,
 {
+    /// Encode fields into string for QrCode
     fn encode(&self) -> String;
+    /// Short descriptive name (e.g. Name in MeCard) used for `figcaption` in html
     fn display(&self) -> String;
+    /// Create SVG string. Internally, `self.encode()` is converted into SVG.
     fn svg(
         &self,
         width: u32,
@@ -83,6 +92,7 @@ where
             .build();
         Ok(qr)
     }
+    /// Batch load from excel
     fn from_excel<Reader: std::io::Read + std::io::Seek>(
         reader: Reader,
     ) -> Result<Vec<Self>, calamine::Error> {
@@ -98,6 +108,7 @@ where
         }
         Ok(cards)
     }
+    /// Load single instance
     fn from_json(path: &Path) -> Result<Self, Box<dyn Error>> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
@@ -165,6 +176,11 @@ impl QrEncode for MeCard {
 extern crate wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
+/// Convert bunch of MeCard information from xlsx into an html file.
+/// # Arguments
+/// - xlsx: raw bytes of xlsx file
+/// - title: title of html
+/// - lang: `<html lang="lang">`
 #[wasm_bindgen]
 pub fn xlsx2html(xlsx: &[u8], title: &str, lang: &str) -> Result<String, JsValue> {
     let cursor = std::io::Cursor::new(xlsx);
