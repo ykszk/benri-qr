@@ -10,8 +10,8 @@ use std::path::Path;
 static CSS: &str = include_str!("default.css");
 
 /// MeCard data format.
-///
-/// `TEL-AV` omitted since it seems obsolete.
+/// Use `:` as a delimiter inside an element to include multiple values.
+/// `TEL-AV` is omitted since it seems obsolete.
 #[derive(Deserialize, Serialize, Debug)]
 #[allow(non_snake_case)]
 pub struct MeCard {
@@ -145,8 +145,8 @@ where
 
 impl QrEncode for MeCard {
     fn encode(&self) -> String {
-        let mut fields = Vec::with_capacity(9);
-        fields.push(("N", &self.Name));
+        let mut fields: Vec<String> = Vec::with_capacity(9);
+        fields.push(std::format!("N:{};", &self.Name));
         for (name, opt) in [
             ("SOUND", &self.Reading),
             ("TEL", &self.TEL),
@@ -158,14 +158,12 @@ impl QrEncode for MeCard {
             ("NICKNAME", &self.Nickname),
         ] {
             if let Some(val) = opt {
-                fields.push((name, val));
+                for e in val.split(':') {
+                    fields.push(std::format!("{}:{};", name, e));
+                }
             };
         }
-        let code = fields
-            .iter()
-            .map(|(name, val)| std::format!("{}:{};", name, val))
-            .collect::<Vec<String>>()
-            .join("");
+        let code = fields.join("");
         String::from("MECARD:") + &code
     }
     fn display(&self) -> String {
@@ -212,6 +210,11 @@ mod tests {
         assert_eq!(
             card.encode(),
             "MECARD:N:John;TEL:1234-5678;EMAIL:john@example.com;"
+        );
+        card.TEL = Some("1234-5678:9012-3456".into());
+        assert_eq!(
+            card.encode(),
+            "MECARD:N:John;TEL:1234-5678;TEL:9012-3456;EMAIL:john@example.com;"
         );
     }
 }
