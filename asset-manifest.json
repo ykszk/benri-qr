@@ -1,11 +1,11 @@
 {
   "files": {
-    "main.js": "/benri-qr/static/js/main.621738d7.js",
-    "static/media/benri_qr_bg.wasm": "/benri-qr/static/media/benri_qr_bg.ada3e3558d1c695f8857.wasm",
+    "main.js": "/benri-qr/static/js/main.55d4ebbb.js",
+    "static/media/benri_qr_bg.wasm": "/benri-qr/static/media/benri_qr_bg.75b0c9f6b6bbb2364bdb.wasm",
     "index.html": "/benri-qr/index.html",
-    "main.621738d7.js.map": "/benri-qr/static/js/main.621738d7.js.map"
+    "main.55d4ebbb.js.map": "/benri-qr/static/js/main.55d4ebbb.js.map"
   },
   "entrypoints": [
-    "static/js/main.621738d7.js"
+    "static/js/main.55d4ebbb.js"
   ]
 }
