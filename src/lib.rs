@@ -166,14 +166,14 @@ extern crate wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn xlsx2html(xlsx: &[u8], title: &str) -> Result<String, JsValue> {
+pub fn xlsx2html(xlsx: &[u8], title: &str, lang: &str) -> Result<String, JsValue> {
     let cursor = std::io::Cursor::new(xlsx);
     let buf = BufReader::new(cursor);
     let cards = MeCard::from_excel(buf).map_err(|e| JsValue::from(e.to_string()))?;
     let mut writer = BufWriter::new(Vec::new());
     let light = svg::Color("transparent");
     let dark = svg::Color("black");
-    MeCard::write_html(&mut writer, &cards, title, "ja", (128, 128), light, dark)
+    MeCard::write_html(&mut writer, &cards, title, lang, (128, 128), light, dark)
         .map_err(|e| JsValue::from(e.to_string()))?;
 
     let bytes = writer
@@ -191,6 +191,11 @@ mod tests {
     fn test_encode() {
         let mut card = MeCard::init(String::from("John"));
         card.TEL = Some("1234-5678".into());
-        assert_eq!(card.encode(), "MECARD:N:John;TEL:1234-5678;")
+        assert_eq!(card.encode(), "MECARD:N:John;TEL:1234-5678;");
+        card.EMail = Some("john@example.com".into());
+        assert_eq!(
+            card.encode(),
+            "MECARD:N:John;TEL:1234-5678;EMAIL:john@example.com;"
+        );
     }
 }

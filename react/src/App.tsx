@@ -27,7 +27,7 @@ function App() {
       try {
         const buf = reader.result as ArrayBuffer;
         const arr = new Uint8Array(buf);
-        const h = xlsx2html(arr, "qr");
+        const h = xlsx2html(arr, "qr", "ja");
         setHtml(h);
       } catch (error) {
         console.error(error);
@@ -39,16 +39,30 @@ function App() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
   if (html.length !== 0) {
     const reset_button = (
-      <button title="Restart from the start" onClick={() => { setHtml("") }}>Reset</button>
+      <button title="Restart from the start" onClick={() => { setErrMessage(""); setHtml(""); }}>Reset</button>
     )
     const save_button = (
       <button title="Save output" onClick={() => { downloadAsHtml(html, "qrcode.html") }}>Save</button>
     )
+    const print_button = (
+      <button title="Print QrCode" onClick={() => {
+        const preview = document.getElementById("preview");
+        if (preview !== null) {
+          const cw = (preview as HTMLIFrameElement).contentWindow;
+          if (cw !== null) {
+            cw.print();
+          }
+        }
+      }}>Print</button>
+    )
     return (
       <div className="App">
-        <iframe title="qrcode" srcDoc={html}></iframe>
-        {reset_button}
-        {save_button}
+        <iframe id="preview" title="qrcode" srcDoc={html}></iframe>
+        <div id="buttons">
+          {print_button}
+          {save_button}
+          {reset_button}
+        </div>
       </div>
     )
   }

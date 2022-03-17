@@ -17,6 +17,11 @@ body {
   text-align: center;
 }
 
+.App {
+  display: flex;
+  flex-direction: column;
+}
+
 div {
   margin: 0;
   padding: 0;
@@ -54,31 +59,17 @@ img {
   width: min(512px, 98vw);
 }
 
-h3 {
-  font-size: 24px;
-  padding: .5em;
-  margin: 0;
-}
-
-label {
-  font-size: 12px;
-}
-
-.smallNote {
-  font-size: 16px;
-}
-
-div.buttons>* {
-  display: block;
-  margin: .5em;
-}
-
 .error {
   border: solid red;
   padding: 1em;
 }
 
 iframe {
-  min-width: 720px;
+  margin: 1em;
   min-height: 512px;
+}
+
+button {
+  margin: .2em;
+  padding: .2em;
 }
