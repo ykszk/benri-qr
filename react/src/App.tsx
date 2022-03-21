@@ -78,7 +78,7 @@ function App() {
         {
           isDragActive ?
             <p>Open the file ...</p> :
-            <p>Drop .xlsx with file or click to open.</p>
+            <p>Drop .xlsx file or click to open.</p>
         }
       </div>
     </div>

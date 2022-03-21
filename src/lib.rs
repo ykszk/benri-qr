@@ -164,7 +164,7 @@ impl QrEncode for MeCard {
             };
         }
         let code = fields.join("");
-        String::from("MECARD:") + &code
+        format!("MECARD:{};", code)
     }
     fn display(&self) -> String {
         self.Name.clone()
@@ -205,16 +205,16 @@ mod tests {
     fn test_encode() {
         let mut card = MeCard::init(String::from("John"));
         card.TEL = Some("1234-5678".into());
-        assert_eq!(card.encode(), "MECARD:N:John;TEL:1234-5678;");
+        assert_eq!(card.encode(), "MECARD:N:John;TEL:1234-5678;;");
         card.EMail = Some("john@example.com".into());
         assert_eq!(
             card.encode(),
-            "MECARD:N:John;TEL:1234-5678;EMAIL:john@example.com;"
+            "MECARD:N:John;TEL:1234-5678;EMAIL:john@example.com;;"
         );
         card.TEL = Some("1234-5678:9012-3456".into());
         assert_eq!(
             card.encode(),
-            "MECARD:N:John;TEL:1234-5678;TEL:9012-3456;EMAIL:john@example.com;"
+            "MECARD:N:John;TEL:1234-5678;TEL:9012-3456;EMAIL:john@example.com;;"
         );
     }
 }
